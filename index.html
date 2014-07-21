@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+   <meta charset="utf-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+   <meta name="description" content="">
+   <title>..:My Web Application:..</title>
+   <link rel="stylesheet" href="css/jquery.mobile.css" />
+   <link rel="stylesheet" href="css/customTheme.css" />
+   <link rel="stylesheet" href="css/jquery.structure.css" />
+   <link rel="stylesheet" href="css/main.css" />
+   <link rel="stylesheet" href="css/style.css" />
+   <script src="js/jquery.js"></script>
+   <script src="js/jquery.mobile.js"></script>
+   <script src="js/bwH5LS.js"></script>
+   <script src="js/custom.js"></script>
+   <script language="javascript">
+   var db = prepareDatabase();
+   var createSQL = 'CREATE TABLE IF NOT EXISTS userinputData (' + 
+      'id INTEGER PRIMARY KEY,' + 
+      'firstName TEXT,' + 
+      'lastName TEXT,' + 
+      'age INTEGER' + 
+      ')';
+   // Check if this browser supports Web SQL
+
+   function getOpenDatabase() {
+      try {
+         if ( !! window.openDatabase) return window.openDatabase;
+         else return undefined;
+      } catch (e) {
+         return undefined;
+      }
+   }
+   // Open the Web SQL database
+
+   function prepareDatabase() {
+      var odb = getOpenDatabase();
+      if (!odb) {
+         dispError('Web SQL Not Supported');
+         return undefined;
+      } else {
+         var db = odb('userinputDataBase', '1.0', 'A Test Database', 10 * 1024 * 1024);
+         db.transaction(function(t) {
+            t.executeSql(createSQL, [], function(t, r) {}, function(t, e) {
+               alert('create table: ' + e.message);
+            });
+         });
+         return db;
+      }
+   }
+   // How many rows do we have?
+
+   function countRows() {
+      if (!db) return;
+      db.readTransaction(function(t) {
+         t.executeSql('SELECT COUNT(*) AS c FROM userinputData', [], function(t, r) {
+            var c = r.rows.item(0).c;
+            element('rowCount').innerHTML = c ? c : 0;
+         }, function(t, e) {
+            alert('countRows: ' + e.message);
+         });
+      });
+   }
+   // Main display function
+
+   function dispResults() {
+      if (errorMessage) {
+         element('results').innerHTML = errorMessage;
+         return;
+      }
+      countRows(); // update the row count each time the display is refreshed
+      if (db) {
+         db.readTransaction(function(t) { // readTransaction sets the database to read-only
+            t.executeSql('SELECT * FROM userinputData ORDER BY LOWER(firstName)', [], function(t, r) {
+               var bwt = new bwTable();
+               bwt.setHeader(['First Name', 'Last Name', 'Age', '']);
+               for (var i = 0; i < r.rows.length; i++) {
+                  var row = r.rows.item(i);
+                  bwt.addRow([row.firstName, row.lastName, row.age, 'edit / delete buttons']);
+               }
+               element('results').innerHTML = bwt.getTableHTML();
+               element('userForm').elements['firstName'].focus();
+            });
+         });
+      }
+   }
+   // add or update rows in the table
+
+   function dbGo() {
+      if (errorMessage) return;
+      var f = element('userForm');
+      var action = f.elements['inputAction'].value;
+      var firstName = f.elements['firstName'].value;
+      var lastName = f.elements['lastName'].value;
+      var age = f.elements['age'].value;
+      var key = f.elements['key'].value;
+      if (firstName || lastName || age) {
+         db.transaction(function(t) {
+            t.executeSql(' INSERT INTO userinputData( firstName, lastName, age ) VALUES ( ?, ?, ? ) ', [firstName, lastName, age]);
+         }, function(t, e) {
+            alert('Insert row: ' + e.message);
+         }, function() {
+            resetTravelForm();
+         });
+      }
+      dispResults();
+   }
+   // clear all the form fields and reset the button and action elements
+
+   function resetTravelForm() {
+      var f = element('userForm');
+      for (var n in ['firstName', 'lastName', 'age', 'key']) {
+         f.elements[n].value = '';
+      }
+      f.elements['inputAction'].value = 'add';
+      f.elements['goButton'].value = 'Add';
+   }
+
+   function initDisp() {
+      dispResults();
+   }
+   window.onload = function() {
+      initDisp();
+   }
+   </script>
+   </script>
+</head>
+<body>
+   <!-- HOME page -->
+   <div id="home" data-role="page" data-theme="a" data-title="Web App : Home">
+      <!-- header -->
+
+      <!-- end of header -->
+      <!-- content begins -->
+      <div data-role="content">
+         <img src="images/viewsourcelogo.png" alt="logo">
+      </div>
+      <div data-role="controlgroup">
+         <!-- links begin -->
+         <a href="#blog" data-role="button" data-icon="comment">Blog</a>
+         <a href="#email" data-role="button" data-icon="mail">Email</a>
+         <a href="#photos" data-role="button" data-icon="camera">Photos</a>
+         <a href="#user" data-role="button" data-icon="user">User</a> 
+         <!-- links -->
+      </div>
+      <!-- content ends -->
+      <!-- footer starts -->
+      <!-- footer ends -->
+   </div>
+   <!-- end of HOME -->
+
+   <!--=========================================== -->
+
+   <!-- BLOG page -->
+   <div id="blog" data-role="page" data-title="Web App : Blog">
+      <!-- header begins -->
+      <div data-role="header" data-position="fixed">
+         <h1>Blog</h1>
+         <a href="#home" data-icon="home" data-iconpos="notext">Home</a>
+      </div>
+      <!-- header ends -->
+      <!-- content begins -->
+      <div data-role="content">
+         <div data-role="collapsible-set">
+            <div data-role="collapsible" data-collapsed="false" class="ui-nodisc-icon ui-alt-icon">
+               <h3>A JSON Tutorial. Getting started with JSON</h3>
+               <p>Getting started with JavaScript Object Notation. A JSON tutorial for Absolute Beginners
+                  <br>
+                  <br>If your WordPress site is set up to show the full length articles Getting started with JavaScript Object Notation. A JSON tutorial for Absolute Beginners</p>
+            </div>
+            <div data-role="collapsible" class="ui-nodisc-icon ui-alt-icon">
+               <h3>WordPress Newbie Tip…control length of posts on homepage</h3>
+               <p>If your WordPress site is set up to show the full length articles Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque necessitatibus autem sequi blanditiis pariatur. Suscipit minima possimus nihil atque recusandae.</p>
+            </div>
+            <div data-role="collapsible" class="ui-nodisc-icon ui-alt-icon">
+               <h3>Tips for finding a great domain name</h3>
+               <p>Workflow tips and tricks for Adobe In-Design
+                  <br>
+                  <br>If your WordPress site is set up to show the full length articles Lorem ipsum dolor sit amet.</p>
+            </div>
+            <div data-role="collapsible" class="ui-nodisc-icon ui-alt-icon">
+               <h3>Advantages of Creating Subdomain Shortcuts</h3>
+               <p>Creating sub-domains gives you the ability to create shortcuts</p>
+            </div>
+            <div data-role="collapsible" class="ui-nodisc-icon ui-alt-icon">
+               <h3>Creating a Photo Rotator with JQuery Cycle</h3>
+               <p>I love the JQuery tagline…write less, do more. If your WordPress site is set up to show the full length articles</p>
+               <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ex, cum tenetur a cupiditate vero eveniet molestias deserunt magni debitis id.</p>
+            </div>
+
+         </div>
+      </div>
+      <!-- content ends -->
+      <!-- footer begins -->
+      <div data-role="footer" data-position="fixed">
+         <div data-role="navbar">
+            <ul>
+               <!-- links begin -->
+
+               <li><a href="#" class="ui-btn-active ui-state-persist" data-role="button" data-icon="comment">Blog</a>
+               </li>
+               <li><a href="#email" data-role="button" data-icon="mail">Email</a>
+               </li>
+               <li><a href="#photos" data-role="button" data-icon="camera">Photos</a>
+               </li>
+               <li><a href="#user" data-role="button" data-icon="user">User</a> 
+               </li>
+               <!-- links -->
+            </ul>
+         </div>
+      </div>
+      <!-- footer ends -->
+   </div>
+   <!-- end of BLOG -->
+
+   <!--=========================================== -->
+
+   <!-- EMAIL page -->
+   <div id="email" data-role="page" data-title="Web App : Videos">
+      <!-- header begins -->
+      <div data-role="header" data-position="fixed">
+         <h1>Email</h1>
+         <a href="#home" data-icon="home" data-iconpos="notext">Home</a>
+      </div>
+      <!-- header ends -->
+      <!-- content begins -->
+      <div data-role="content">
+         <div data-role="collapsible-set" data-theme="a" data-inset="false">
+            <div data-role="collapsible" data-collapsed="false" class="ui-nodisc-icon ui-alt-icon">
+               <h2>Mailbox</h2>
+               <ul data-role="listview" data-count-theme="b">
+                  <li><a href="#">Inbox <span class="ui-li-count">12</span></a>
+                  </li>
+                  <li><a href="#">Outbox <span class="ui-li-count">0</span></a>
+                  </li>
+                  <li><a href="#">Drafts <span class="ui-li-count">4</span></a>
+                  </li>
+                  <li><a href="#">Sent <span class="ui-li-count">328</span></a>
+                  </li>
+                  <li><a href="#">Trash <span class="ui-li-count">62</span></a>
+                  </li>
+               </ul>
+            </div>
+            <div data-role="collapsible" class="ui-nodisc-icon ui-alt-icon">
+               <h2>Calendar</h2>
+               <ul data-role="listview" data-theme="a" data-divider-theme="b">
+                  <li data-role="list-divider">Friday, October 8, 2010
+                     <span class="ui-li-count">2</span>
+                  </li>
+                  <li>
+                     <a href="#">
+                        <h3>Stephen Weber</h3>
+                        <p>
+                           <strong>You've been invited to a meeting at Filament Group in Boston, MA</strong>
+                        </p>
+                        <p>Hey Stephen, if you're available at 10am tomorrow, we've got a meeting with the jQuery team.</p>
+                        <p class="ui-li-aside">
+                           <strong>6:24</strong>PM</p>
+                     </a>
+                  </li>
+                  <li>
+                     <a href="#">
+                        <h3>jQuery Team</h3>
+                        <p>
+                           <strong>Boston Conference Planning</strong>
+                        </p>
+                        <p>In preparation for the upcoming conference in Boston, we need to start gathering a list of sponsors and speakers.</p>
+                        <p class="ui-li-aside">
+                           <strong>9:18</strong>AM</p>
+                     </a>
+                  </li>
+                  <li data-role="list-divider">Thursday, October 7, 2010
+                     <span class="ui-li-count">1</span>
+                  </li>
+                  <li>
+                     <a href="#">
+                        <h3>Avery Walker</h3>
+                        <p>
+                           <strong>Re: Dinner Tonight</strong>
+                        </p>
+                        <p>Sure, let's plan on meeting at Highland Kitchen at 8:00 tonight. Can't wait!</p>
+                        <p class="ui-li-aside">
+                           <strong>4:48</strong>PM</p>
+                     </a>
+                  </li>
+                  <li data-role="list-divider">Wednesday, October 6, 2010
+                     <span class="ui-li-count">3</span>
+                  </li>
+                  <li>
+                     <a href="#">
+                        <h3>Amazon.com</h3>
+                        <p>
+                           <strong>4-for-3 Books for Kids</strong>
+                        </p>
+                        <p>As someone who has purchased children's books from our 4-for-3 Store, you may be interested in these featured books.</p>
+                        <p class="ui-li-aside">
+                           <strong>12:47</strong>PM</p>
+                     </a>
+                  </li>
+               </ul>
+            </div>
+            <div data-role="collapsible" data-content-theme="a" data-inset="false" class="ui-nodisc-icon ui-alt-icon">
+               <h2>Contacts</h2>
+               <ul data-role="listview" data-filter="true" data-autodividers="true" data-filter-theme="a" data-divider-theme="b">
+                  <li><a href="#">Adam Kinkaid</a>
+                  </li>
+                  <li><a href="#">Alex Wickerham</a>
+                  </li>
+                  <li><a href="#">Avery Johnson</a>
+                  </li>
+                  <li><a href="#">Bob Cabot</a>
+                  </li>
+                  <li><a href="#">Caleb Booth</a>
+                  </li>
+                  <li><a href="#">Christopher Adams</a>
+                  </li>
+                  <li><a href="#">Culver James</a>
+                  </li>
+               </ul>
+            </div>
+         </div>
+      </div>
+      <!-- content ends -->
+      <!-- footer begins -->
+      <div data-role="footer" data-position="fixed">
+         <div data-role="navbar">
+            <ul>
+               <!-- links begin -->
+
+               <li><a href="#blog" data-role="button" data-icon="comment">Blog</a>
+               </li>
+               <li><a href="#" class="ui-btn-active ui-state-persist" data-role="button" data-icon="mail">Email</a>
+               </li>
+               <li><a href="#photos" data-role="button" data-icon="camera">Photos</a>
+               </li>
+               <li><a href="#user" data-role="button" data-icon="user">User</a> 
+               </li>
+               <!-- links -->
+            </ul>
+         </div>
+      </div>
+      <!-- footer ends -->
+   </div>
+   <!-- end of EMAIL -->
+
+   <!--=========================================== -->
+
+   <!-- PHOTOS page -->
+   <div id="photos" data-role="page" data-title="Web App : Photos">
+      <!-- header begins -->
+      <div data-role="header">
+         <h1>Photos</h1>
+         <a href="#home" data-icon="home" data-iconpos="notext">Home</a>
+      </div>
+      <!-- header ends -->
+      <!-- content begins -->
+      <div data-role="content">
+         <p>Photos from Flickr loading...</p>
+      </div>
+      <!-- content ends -->
+      <!-- footer begins -->
+      <div data-role="footer" data-position="fixed">
+         <div data-role="navbar">
+            <ul>
+               <!-- links begin -->
+
+               <li><a href="#blog" data-role="button" data-icon="comment">Blog</a>
+               </li>
+               <li><a href="#email" data-role="button" data-icon="mail">Email</a>
+               </li>
+               <li><a href="#" class="ui-btn-active ui-state-persist" data-role="button" data-icon="camera">Photos</a>
+               </li>
+               <li><a href="#user" data-role="button" data-icon="user">User</a> 
+               </li>
+               <!-- links -->
+            </ul>
+         </div>
+      </div>
+      <!-- footer ends -->
+   </div>
+   <!-- end of PHOTOS -->
+
+   <!-- ============================================ -->
+
+   <!-- USER page -->
+   <div id="user" data-role="page" data-title="Web App : User">
+      <!-- header begins -->
+      <div data-role="header">
+         <h1>User</h1>
+         <a href="#home" data-icon="home" data-iconpos="notext">Home</a>
+      </div>
+      <!-- header ends -->
+      <!-- content begins -->
+      <div data-role="content">
+         <form action="#results" id="userForm">
+            <div data-role="fieldcontain">
+               <label for="firstName">First Name :</label>
+               <input type="text" name="firstName" id="firstName" value="" placeholder="First Name" />
+               <br>
+               <label for="lastName">Last Name :</label>
+               <input type="text" name="lastName" id="lastName" placeholder="Last Name" />
+               <br>
+               <label for="age">Age :</label>
+               <input type="text" name="age" id="age" placeholder="Enter Age" />
+            </div>
+            <!-- <div data-role="fieldcontain">
+               <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
+                  <legend>Gender :</legend>
+                  <input type="radio" name="radio-choice-b" id="radio-choice-c" value="list" checked>
+                  <label for="radio-choice-c">Male</label>
+                  <input type="radio" name="radio-choice-b" id="radio-choice-d" value="grid">
+                  <label for="radio-choice-d">Female</label>
+               </fieldset>
+               <br>
+               <label for="number-pattern">Select Age :</label>
+               <input type="number" min="18" max="70" name="age" pattern="[0-9]*" id="number-pattern" value="" placeholder="18..">
+               <br>
+               <div data-role="fieldcontain">
+                  <label for="select-choice-8" class="select">Skill Set :</label>
+                  <select name="select-choice-8" id="select-choice-8" multiple="multiple" data-native-menu="false" data-icon="grid" data-iconpos="left">
+                     <option>Skill Set</option>
+                     <optgroup label="Design Tools">
+                        <option value="photoshop" selected>Photoshop</option>
+                        <option value="Illustrator">Illustrator</option>
+                        <option value="Flash">Flash</option>
+                        <option value="fireWorks">Fire Works</option>
+                     </optgroup>
+                     <optgroup label="Programming Languages">
+                        <option value="html" selected>HTML5 &amp; CSS3</option>
+                        <option value="jQuery">jQuery</option>
+                        <option value="bootStrap">BootStrap</option>
+                     </optgroup>
+                  </select>
+                  <label for="other"></label>
+                  <input type="text" name="other" id="other" value="" placeholder="Specify any other..." />
+               </div>
+               <label for="country" class="select">Country :</label>
+               <select id="country" name="country">
+                  <option value="country1">India</option>
+                  <option value="country2">China</option>
+                  <option value="country3">Ireland</option>
+               </select>
+            </div> -->
+            <br>
+            <br>
+            <div data-role="controlgroup" data-type="horizontal">
+               <a href="#disResults" class="ui-btn ui-icon-check ui-btn-a" id="submit" onClick="javascript:dbGo()" id="formSubmit">Submit</a>
+               <input id="inputAction" type="hidden" name="action" value="add" />
+               <input id="inputKey" type="hidden" name="key" value="0" />
+            </div>
+         </form>
+      </div>
+      <!-- content ends -->
+      <!-- footer begins -->
+      <div data-role="footer" data-position="fixed">
+         <div data-role="navbar">
+            <ul>
+               <!-- links begin -->
+
+               <li><a href="#blog" data-role="button" data-icon="comment">Blog</a>
+               </li>
+               <li><a href="#email" data-role="button" data-icon="mail">Email</a>
+               </li>
+               <li><a href="#photos" data-role="button" data-icon="camera">Photos</a>
+               </li>
+               <li><a href="#" class="ui-btn-active ui-state-persist" data-role="button" data-icon="user">User</a> 
+               </li>
+               <!-- links -->
+            </ul>
+         </div>
+      </div>
+      <!-- footer ends -->
+   </div>
+   <!-- end of user -->
+   <div id="disResults" data-role="page" data-title="Web App : UserResults">
+      <!-- header begins -->
+      <div data-role="header">
+         <h1>User Results</h1>
+         <a href="#home" data-icon="home" data-iconpos="notext">Home</a>
+      </div>
+      <!-- header ends -->
+      <!-- content begins -->
+      <div data-role="content">
+         <div id="results">
+            <!-- display results here -->
+         </div>
+         <div>Total no. of users are <span id="rowCount">__ </span></div>
+      </div>
+      <!-- content ends -->
+      <!-- footer begins -->
+      <div data-role="footer" data-position="fixed">
+         <div data-role="navbar">
+            <ul>
+               <!-- links begin -->
+
+               <li><a href="#blog" data-role="button" data-icon="comment">Blog</a>
+               </li>
+               <li><a href="#email" data-role="button" data-icon="mail">Email</a>
+               </li>
+               <li><a href="#photos" data-role="button" data-icon="camera">Photos</a>
+               </li>
+               <li><a href="#" class="ui-btn-active ui-state-persist" data-role="button" data-icon="user">User</a> 
+               </li>
+               <!-- links -->
+            </ul>
+         </div>
+      </div>
+      <!-- footer ends -->
+   </div>
+
+
+</body>
+
+</html>

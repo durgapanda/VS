@@ -1,0 +1,24 @@
+/*Custom CSS*/
+ body {
+   font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+   margin-bottom: 80px;
+}
+#home {
+   text-align: center;
+   background: url('../images/background_viewsource.png');
+}
+#home .ui-controlgroup {
+   width: 80%;
+   margin: 0px auto;
+   margin-top: 20px;
+   max-width: 250px;
+}
+#home img {
+   width: 50%;
+   max-width:200px;
+}
+
+.ui-selectmenu.ui-popup{
+   min-width: 15em;
+   max-width: 200px;
+}
